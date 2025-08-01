@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSC Max Airdrop - Claim Your Tokens</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjRjBCOTBCIi8+Cjwvc3ZnPgo=">
+    
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Include Web3.js (better for BSC) -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    
+    <!-- Include ethers.js as fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <!-- Include WalletConnect for BSC -->
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #F0B90B 0%, #FFC107 50%, #FF8F00 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #F0B90B, #FF8F00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .highlight {
+            background: linear-gradient(45deg, #F0B90B, #FF8F00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .features {
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(240, 185, 11, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #F0B90B;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+            margin-right: 10px;
+            color: #F0B90B;
+        }
+        
+        .feature-text {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .stat {
+            background: rgba(240, 185, 11, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(240, 185, 11, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #F0B90B;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .button-container {
+            margin: 30px 0;
+        }
+        
+        #wallet-select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #F0B90B;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        #wallet-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.3);
+        }
+        
+        #connect-wallet {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #F0B90B, #FF8F00);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #connect-wallet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(240, 185, 11, 0.4);
+        }
+        
+        #connect-wallet:active {
+            transform: translateY(0);
+        }
+        
+        #connection-status {
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #666;
+            min-height: 16px;
+        }
+        
+        .warning {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #e65100;
+        }
+        
+        .warning-icon {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .supported-wallets {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .supported-wallets h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .wallet-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .wallet-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(240, 185, 11, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 1px solid rgba(240, 185, 11, 0.3);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .footer a {
+            color: #F0B90B;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .logo {
+                font-size: 36px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .wallet-icons {
+                gap: 10px;
+            }
+            
+            .wallet-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo pulse">🚀</div>
+        <h1 class="title">BSC Max Airdrop</h1>
+        <p class="subtitle">
+            Claim your exclusive <span class="highlight">BSC Max tokens</span> now!<br>
+            Limited time offer for early adopters on Binance Smart Chain
+        </p>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">⚡</span>
+                <span class="feature-text">Lightning-fast BSC transactions</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">💰</span>
+                <span class="feature-text">High-value token distribution</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔒</span>
+                <span class="feature-text">Secure smart contract verified</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🌟</span>
+                <span class="feature-text">Exclusive early access rewards</span>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">50,000+</div>
+                <div class="stat-label">Tokens Distributed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">$500</div>
+                <div class="stat-label">Average Claim Value</div>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <span class="warning-icon">⏰</span>
+            <strong>Limited Time:</strong> This airdrop expires in 24 hours. Connect your BSC wallet now to claim your tokens!
+        </div>
+        
+        <div class="button-container">
+            <div id="connection-status"></div>
+            <!-- Wallet selector will be inserted here by JavaScript -->
+            <button id="connect-wallet">🔗 Connect BSC Wallet</button>
+        </div>
+        
+        <div class="supported-wallets">
+            <h3>Supported Wallets</h3>
+            <div class="wallet-icons">
+                <div class="wallet-icon" title="MetaMask">🦊</div>
+                <div class="wallet-icon" title="Trust Wallet">🛡️</div>
+                <div class="wallet-icon" title="Binance Wallet">⚡</div>
+                <div class="wallet-icon" title="TokenPocket">💼</div>
+                <div class="wallet-icon" title="SafePal">🔐</div>
+                <div class="wallet-icon" title="Phantom">👻</div>
+                <div class="wallet-icon" title="WalletConnect">🔗</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                🌐 Powered by BSC Network | 
+                <a href="#" onclick="alert('Contract: 0x...')">Smart Contract</a> | 
+                <a href="#" onclick="alert('Visit BSCScan for verification')">Verify</a>
+            </p>
+            <p style="margin-top: 10px;">
+                <small>Connect your wallet to claim BSC Max tokens. Ensure you're on BSC Mainnet (Chain ID: 56)</small>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Include our main script -->
+    <script src="scripts/scripts.js"></script>
+</body>
+</html>
